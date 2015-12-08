@@ -55,7 +55,7 @@ object TxBoundary {
 
     implicit def futureTxBoundary[A](implicit ec: ExecutionContext) = new TxBoundary[Future[A]] {
 
-      private def onComplete(future: Future[A])(f: Try[A] => Unit) = {
+      private def onComplete(future: Future[A])(f: Try[A] => Unit): Future[A] = {
         val p = Promise[A]
         future.onComplete {
           case a @ Success(v) => p.complete(scala.util.Try { f(a); v })
