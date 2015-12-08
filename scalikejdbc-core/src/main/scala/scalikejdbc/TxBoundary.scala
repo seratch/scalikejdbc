@@ -1,6 +1,7 @@
 package scalikejdbc
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Promise, ExecutionContext, Future }
+import scala.util.control.NonFatal
 import scala.util.{ Try, Failure, Success }
 
 /**
@@ -53,17 +54,26 @@ object TxBoundary {
   object Future extends TxBoundaryMissingImplicits {
 
     implicit def futureTxBoundary[A](implicit ec: ExecutionContext) = new TxBoundary[Future[A]] {
-      def finishTx(result: Future[A], tx: Tx): Future[A] = {
-        result.andThen {
+
+      private def onComplete(future: Future[A])(f: Try[A] => Unit) = {
+        val p = Promise[A]
+        future.onComplete {
+          case a @ Success(v) => p.complete(scala.util.Try { f(a); v })
+          case a @ Failure(t) =>
+            try f(a) catch { case NonFatal(e) => t.addSuppressed(e) }
+            finally p.complete(Failure(t))
+        }
+        p.future
+      }
+
+      def finishTx(result: Future[A], tx: Tx): Future[A] =
+        onComplete(result) {
           case Success(_) => tx.commit()
           case Failure(_) => tx.rollback()
         }
-      }
-      override def closeConnection(result: Future[A], doClose: () => Unit): Future[A] = {
-        result.andThen {
-          case _ => doClose()
-        }
-      }
+
+      override def closeConnection(result: Future[A], doClose: () => Unit): Future[A] =
+        onComplete(result)(_ => doClose())
     }
   }
 
