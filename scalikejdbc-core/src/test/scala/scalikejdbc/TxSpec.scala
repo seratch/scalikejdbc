@@ -59,7 +59,7 @@ class TxSpec extends FlatSpec with Matchers with Settings {
     rollbackCalled should be(true)
   }
 
-  it should "be has a suppressed exception when rollback() throws an exception" in {
+  it should "have a suppressed exception when rollback() throws an exception" in {
     val conn = mock(classOf[Connection])
     val commitException = new RuntimeException
     when(conn.commit()).thenThrow(commitException)
