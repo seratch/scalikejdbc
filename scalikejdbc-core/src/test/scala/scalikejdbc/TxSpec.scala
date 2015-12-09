@@ -1,7 +1,12 @@
 package scalikejdbc
 
+import java.sql.Connection
+
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import org.scalatest._
 import util.control.Exception._
+import org.mockito.Mockito.{ mock, when }
 
 class TxSpec extends FlatSpec with Matchers with Settings {
 
@@ -34,6 +39,36 @@ class TxSpec extends FlatSpec with Matchers with Settings {
       tx.begin()
       tx.commit()
     }
+  }
+
+  it should "be rolled back when it throws an exception" in {
+    val conn = mock(classOf[Connection])
+    var rollbackCalled = false
+    val commitException = new RuntimeException
+    when(conn.commit()).thenThrow(commitException)
+
+    when(conn.rollback()).thenAnswer(new Answer[Unit] {
+      override def answer(invocation: InvocationOnMock): Unit = {
+        rollbackCalled = true
+        ()
+      }
+    })
+
+    val tx = new Tx(conn)
+    the[RuntimeException] thrownBy tx.commit() should be(commitException)
+    rollbackCalled should be(true)
+  }
+
+  it should "be has a suppressed exception when rollback() throws an exception" in {
+    val conn = mock(classOf[Connection])
+    val commitException = new RuntimeException
+    when(conn.commit()).thenThrow(commitException)
+    val rollbackException = new RuntimeException
+    when(conn.rollback()).thenThrow(rollbackException)
+
+    val tx = new Tx(conn)
+    the[RuntimeException] thrownBy tx.commit() should be(commitException)
+    commitException.getSuppressed should contain(rollbackException)
   }
 
   "rollback" should "be available" in {
