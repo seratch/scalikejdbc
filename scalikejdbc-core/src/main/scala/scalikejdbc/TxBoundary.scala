@@ -47,20 +47,29 @@ object TxBoundary {
     implicit def `"To activate TxBoundary.Future, scala.concurrent.ExecutionContext value in implicit scope is required here."`[A]: TxBoundary[A] = sys.error("Don't use this method.")
   }
 
-  private def cleanup[A](t: Try[A])(f: Try[A] => Unit): Try[A] =
-    scala.util.Try(f(t)) // execute a clean up function f
-      .transform(
-        _ => t,
-        th => Failure(t match {
-          case Success(_) => th
-          // add th as a suppressed exception of an original exception
-          case Failure(original) => original.addSuppressed(th); original
+  /**
+   * Applies an operation to finish current transaction to the result.
+   * When the operation throws some exception, the exception will be returned without fail.
+   */
+  private def doFinishTx[A](result: Try[A])(doFinish: Try[A] => Unit): Try[A] =
+    scala.util.Try(doFinish(result)).transform(
+      _ => result,
+      finishError =>
+        Failure(result match {
+          case Success(_) => finishError
+          case Failure(resultError) =>
+            resultError.addSuppressed(finishError)
+            resultError
         })
-      )
+    )
 
-  private def onCleanup[A](future: Future[A])(f: Try[A] => Unit)(implicit ec: ExecutionContext): Future[A] = {
+  /**
+   * Applies an operation to finish current transaction to the Future value which holds the result.
+   * When the operation throws some exception, the exception will be returned without fail.
+   */
+  private def onFinishTx[A](resultF: Future[A])(doFinish: Try[A] => Unit)(implicit ec: ExecutionContext): Future[A] = {
     val p = Promise[A]
-    future.onComplete(t => p.complete(cleanup(t)(f)))
+    resultF.onComplete(result => p.complete(doFinishTx(result)(doFinish)))
     p.future
   }
 
@@ -71,19 +80,22 @@ object TxBoundary {
 
     implicit def futureTxBoundary[A](implicit ec: ExecutionContext) = new TxBoundary[Future[A]] {
 
-      def finishTx(result: Future[A], tx: Tx): Future[A] =
-        onCleanup(result) {
+      def finishTx(result: Future[A], tx: Tx): Future[A] = {
+        onFinishTx(result) {
           case Success(_) => tx.commit()
           case Failure(_) => tx.rollback()
         }
+      }
 
       override def closeConnection(result: Future[A], doClose: () => Unit): Future[A] =
-        onCleanup(result)(_ => doClose())
+        onFinishTx(result)(_ => doClose())
     }
   }
 
   /**
    * Either TxBoundary type class instance.
+   *
+   * NOTE: Either TxBoundary may throw an Exception when commit/rollback operation fails.
    */
   object Either {
 
@@ -105,14 +117,15 @@ object TxBoundary {
 
     implicit def tryTxBoundary[A] = new TxBoundary[Try[A]] {
       def finishTx(result: Try[A], tx: Tx): Try[A] = {
-        cleanup(result) {
+        doFinishTx(result) {
           case Success(_) => tx.commit()
           case Failure(_) => tx.rollback()
         }
       }
 
-      override def closeConnection(result: Try[A], doClose: () => Unit): Try[A] =
-        cleanup(result)(_ => doClose())
+      override def closeConnection(result: Try[A], doClose: () => Unit): Try[A] = {
+        doFinishTx(result)(_ => doClose())
+      }
     }
   }
 
