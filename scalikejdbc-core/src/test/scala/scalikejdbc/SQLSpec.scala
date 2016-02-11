@@ -335,4 +335,23 @@ class SQLSpec extends FlatSpec with Matchers with BeforeAndAfter with Settings w
     }
   }
 
+  it should "correctly work when Boolean retrieval (#493)" in {
+    val tableName = tableNamePrefix + "_booleanValue"
+    implicit val session = AutoSession
+    ultimately(SQL("drop table " + tableName)) {
+      SQL("CREATE TABLE " + tableName + "(name VARCHAR(1) NOT NULL, flag BOOLEAN NOT NULL, PRIMARY KEY (name))").execute.apply()
+      Seq(("A", true), ("B", false)).foreach {
+        case (name, flag) =>
+          SQL("INSERT INTO " + tableName + "(name, flag) VALUES (?, ?)").bind(name, flag).update.apply()
+      }
+      SQL("SELECT flag FROM " + tableName + " WHERE name = 'A'").map(_.boolean(1)).single.apply() should equal(Some(true))
+      SQL("SELECT flag FROM " + tableName + " WHERE name = ?").bind("A").map(_.boolean(1)).single.apply() should equal(Some(true))
+      SQL("SELECT flag FROM " + tableName + " WHERE name = 'B'").map(_.boolean(1)).single.apply() should equal(Some(false))
+      SQL("SELECT flag FROM " + tableName + " WHERE name = ?").bind("B").map(_.boolean(1)).single.apply() should equal(Some(false))
+      SQL("SELECT flag FROM " + tableName + " WHERE name = 'C'").map(_.boolean(1)).single.apply() should equal(None)
+      SQL("SELECT flag FROM " + tableName + " WHERE name = ?").bind("C").map(_.boolean(1)).single.apply() should equal(None)
+
+    }
+  }
+
 }
