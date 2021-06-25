@@ -3,7 +3,7 @@ package util
 import scalikejdbc._
 import com.typesafe.config.ConfigFactory
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import org.slf4j.LoggerFactory
 import scalikejdbc.orm.crud.CRUDFeatureWithId
 import scalikejdbc.orm.internals.JavaReflectionUtil
