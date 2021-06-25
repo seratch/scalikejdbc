@@ -11,6 +11,7 @@ import scalikejdbc.orm.{ Alias, JodaTimeImplicits }
  */
 trait SQLSyntaxSupportBase[Entity]
   extends SQLSyntaxSupport[Entity]
+  with ConnectionPoolFeature
   with JodaTimeImplicits {
 
   private[this] val _tableName = super.tableName

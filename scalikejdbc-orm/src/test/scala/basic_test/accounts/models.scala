@@ -206,7 +206,7 @@ object GroupMapper
   override val defaultAlias = createAlias("g")
   def extract(rs: WrappedResultSet, s: ResultName[Group]): Group =
     autoConstruct(rs, s)
-  
+
   beforeCreate((session: DBSession, namedValues: Seq[(SQLSyntax, Any)]) => {
     logger.info(s"Before creation. params: ${namedValues}")
   })
