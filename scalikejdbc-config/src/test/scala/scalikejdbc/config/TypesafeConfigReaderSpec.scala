@@ -8,32 +8,27 @@ import org.scalatest.matchers.should.Matchers
 class TypesafeConfigReaderSpec extends AnyFunSpec with Matchers {
 
   val play24ConfigReader = new TypesafeConfigReader with TypesafeConfig {
-    override lazy val config: Config =
-      ConfigFactory.load("application-play24.conf")
+    override val config: Config = ConfigFactory.load("application-play24.conf")
   }
 
   val emptyConfigReader = new TypesafeConfigReader with TypesafeConfig {
-    override lazy val config: Config = ConfigFactory.load("empty.conf")
+    override val config: Config = ConfigFactory.load("empty.conf")
   }
 
   val emptyGlobalConfigReader = new TypesafeConfigReader with TypesafeConfig {
-    override lazy val config: Config =
-      ConfigFactory.load("application-empty-global.conf")
+    override val config: Config = ConfigFactory.load("application-empty-global.conf")
   }
 
   val badConfigReader = new TypesafeConfigReader with TypesafeConfig {
-    override lazy val config: Config =
-      ConfigFactory.load("application-bad.conf")
+    override val config: Config = ConfigFactory.load("application-bad.conf")
   }
 
   val badConfigReaderLogEnabled = new TypesafeConfigReader with TypesafeConfig {
-    override lazy val config: Config =
-      ConfigFactory.load("application-bad-logenabled.conf")
+    override val config: Config = ConfigFactory.load("application-bad-logenabled.conf")
   }
 
   val noDriverConfigReader = new TypesafeConfigReader with TypesafeConfig {
-    override lazy val config: Config =
-      ConfigFactory.load("application-no-driver.conf")
+    override val config: Config = ConfigFactory.load("application-no-driver.conf")
   }
 
   describe("TypesafeConfigReader") {

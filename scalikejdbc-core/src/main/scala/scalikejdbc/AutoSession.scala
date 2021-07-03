@@ -17,7 +17,7 @@ case class AutoSession(settings: SettingsProvider) extends DBSession {
   override def queryTimeout(seconds: Int): this.type = unexpectedInvocation
   override def queryTimeout(seconds: Option[Int]): this.type =
     unexpectedInvocation
-  override private[scalikejdbc] lazy val connectionAttributes
+  override private[scalikejdbc] val connectionAttributes
     : DBConnectionAttributes = unexpectedInvocation
 }
 
@@ -42,6 +42,6 @@ case class NamedAutoSession(
   override def queryTimeout(seconds: Int): this.type = unexpectedInvocation
   override def queryTimeout(seconds: Option[Int]): this.type =
     unexpectedInvocation
-  override private[scalikejdbc] lazy val connectionAttributes
+  override private[scalikejdbc] val connectionAttributes
     : DBConnectionAttributes = unexpectedInvocation
 }

@@ -7,5 +7,5 @@ import com.typesafe.config.{ ConfigFactory, Config }
  */
 trait StandardTypesafeConfig extends TypesafeConfig {
 
-  lazy val config: Config = ConfigFactory.load()
+  val config: Config = ConfigFactory.load()
 }

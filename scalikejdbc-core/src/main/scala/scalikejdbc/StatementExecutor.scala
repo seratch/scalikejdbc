@@ -4,7 +4,11 @@ import java.sql.PreparedStatement
 
 import org.slf4j.LoggerFactory
 
+// TODO: Scala 3 migration when dropping Scala 2.12
+// method reflectiveSelectableFromLangReflectiveCalls in object Selectable is deprecated since 3.0:
+// import scala.reflect.Selectable.reflectiveSelectable instead of scala.language.reflectiveCalls
 import scala.language.reflectiveCalls
+
 import scala.util.control.NonFatal
 import JavaUtilDateConverterImplicits._
 
