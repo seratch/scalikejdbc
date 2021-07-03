@@ -16,7 +16,8 @@ class TypesafeConfigReaderSpec extends AnyFunSpec with Matchers {
   }
 
   val emptyGlobalConfigReader = new TypesafeConfigReader with TypesafeConfig {
-    override val config: Config = ConfigFactory.load("application-empty-global.conf")
+    override val config: Config =
+      ConfigFactory.load("application-empty-global.conf")
   }
 
   val badConfigReader = new TypesafeConfigReader with TypesafeConfig {
@@ -24,11 +25,13 @@ class TypesafeConfigReaderSpec extends AnyFunSpec with Matchers {
   }
 
   val badConfigReaderLogEnabled = new TypesafeConfigReader with TypesafeConfig {
-    override val config: Config = ConfigFactory.load("application-bad-logenabled.conf")
+    override val config: Config =
+      ConfigFactory.load("application-bad-logenabled.conf")
   }
 
   val noDriverConfigReader = new TypesafeConfigReader with TypesafeConfig {
-    override val config: Config = ConfigFactory.load("application-no-driver.conf")
+    override val config: Config =
+      ConfigFactory.load("application-no-driver.conf")
   }
 
   describe("TypesafeConfigReader") {

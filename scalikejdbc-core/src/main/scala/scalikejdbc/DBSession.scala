@@ -981,6 +981,7 @@ case object NoSession extends DBSession {
   override def queryTimeout(seconds: Int): this.type = unexpectedInvocation
   override def queryTimeout(seconds: Option[Int]): this.type =
     unexpectedInvocation
-  override private[scalikejdbc] val connectionAttributes: DBConnectionAttributes = unexpectedInvocation
+  override private[scalikejdbc] val connectionAttributes
+    : DBConnectionAttributes = unexpectedInvocation
   override protected[scalikejdbc] def settings = SettingsProvider.default
 }
